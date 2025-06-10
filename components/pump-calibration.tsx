@@ -47,14 +47,22 @@ export default function PumpCalibration({ pumpConfig: initialConfig, onConfigUpd
     }
   }
 
-  const handleIngredientChange = (pumpId: number, ingredient: string) => {
-    setPumpConfig((prev) =>
-      prev.map((pump) =>
-        pump.id === pumpId
-          ? { ...pump, ingredient, flowRate: pump.ingredient === ingredient ? pump.flowRate : 25.0 }
-          : pump,
-      ),
+  const handleIngredientChange = async (pumpId: number, ingredient: string) => {
+    const updatedConfig = pumpConfig.map((pump) =>
+      pump.id === pumpId ? { ...pump, ingredient, flowRate: 25.0 } : pump,
     )
+
+    setPumpConfig(updatedConfig)
+
+    // Speichere automatisch und benachrichtige über Updates
+    try {
+      await savePumpConfig(updatedConfig)
+      if (onConfigUpdate) {
+        await onConfigUpdate()
+      }
+    } catch (error) {
+      console.error("Fehler beim automatischen Speichern:", error)
+    }
   }
 
   const handleSave = async () => {

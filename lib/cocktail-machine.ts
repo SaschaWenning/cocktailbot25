@@ -1,65 +1,42 @@
-// lib/cocktail-machine.ts
-
-import type { Ingredient } from "./ingredient"
-
-export class CocktailMachine {
-  private pumps: { [ingredientName: string]: Pump } = {}
-  private ingredients: { [ingredientName: string]: Ingredient } = {}
-
-  constructor() {
-    // Initialize pumps and ingredients here, or load from a configuration.
-  }
-
-  addPump(ingredientName: string, pump: Pump) {
-    this.pumps[ingredientName] = pump
-  }
-
-  addIngredient(ingredient: Ingredient) {
-    this.ingredients[ingredient.name] = ingredient
-  }
-
-  async dispense(ingredientName: string, amount: number): Promise<void> {
-    const pump = this.pumps[ingredientName]
-    const ingredient = this.ingredients[ingredientName]
-
-    if (!pump) {
-      throw new Error(`No pump configured for ingredient: ${ingredientName}`)
-    }
-
-    if (!ingredient) {
-      throw new Error(`No ingredient found: ${ingredientName}`)
-    }
-
-    const dispenseTimeMs = amount * ingredient.flowRate // Calculate dispense time based on flow rate
-
-    console.log(`Dispensing ${amount}ml of ${ingredientName} for ${dispenseTimeMs}ms`)
-    await pump.activatePump(dispenseTimeMs)
-  }
-
-  async createCocktail(recipe: { [ingredientName: string]: number }): Promise<void> {
-    for (const ingredientName in recipe) {
-      if (recipe.hasOwnProperty(ingredientName)) {
-        const amount = recipe[ingredientName]
-        await this.dispense(ingredientName, amount)
-      }
-    }
-  }
-
-  // You might want to add methods for cleaning, calibration, etc.
+export interface PumpConfig {
+  id: string
+  name: string
+  flowRate: number
+  gpioPin: number
+  ingredient: string
 }
 
-export class Pump {
-  private gpioPin: number
+const initialPumpConfig: PumpConfig[] = [
+  { id: "1", name: "Pump 1", flowRate: 25.0, gpioPin: 17, ingredient: "Vodka" },
+  { id: "2", name: "Pump 2", flowRate: 25.0, gpioPin: 18, ingredient: "Gin" },
+  { id: "3", name: "Pump 3", flowRate: 25.0, gpioPin: 27, ingredient: "Rum" },
+  { id: "4", name: "Pump 4", flowRate: 25.0, gpioPin: 22, ingredient: "Tequila" },
+  { id: "5", name: "Pump 5", flowRate: 25.0, gpioPin: 23, ingredient: "Orange Juice" },
+  { id: "6", name: "Pump 6", flowRate: 25.0, gpioPin: 24, ingredient: "Cranberry Juice" },
+  { id: "7", name: "Pump 7", flowRate: 25.0, gpioPin: 25, ingredient: "Lime Juice" },
+  { id: "8", name: "Pump 8", flowRate: 25.0, gpioPin: 4, ingredient: "Simple Syrup" },
+]
 
-  constructor(gpioPin: number) {
-    this.gpioPin = gpioPin
-    // Initialize GPIO pin here (e.g., using a library like rpio or pigpio)
-    console.log(`Initializing pump on GPIO pin: ${gpioPin}`)
-  }
+let pumpConfig: PumpConfig[] = [...initialPumpConfig]
 
-  async activatePump(durationMs: number): Promise<void> {
-    // Activate the pump for the specified duration
-    console.log(`Activating pump on GPIO pin ${this.gpioPin} for ${durationMs}ms`)
-    return new Promise((resolve) => setTimeout(resolve, durationMs))
-  }
+export const getPumpConfig = (): PumpConfig[] => {
+  return pumpConfig
+}
+
+export const getPump = (id: string): PumpConfig | undefined => {
+  return pumpConfig.find((pump) => pump.id === id)
+}
+
+export const savePumpConfig = (config: PumpConfig[]): void => {
+  // Falls eine Pumpe keinen flowRate hat, setze 25.0 als Standard
+  const configWithDefaults = config.map((pump) => ({
+    ...pump,
+    flowRate: pump.flowRate || 25.0,
+  }))
+
+  pumpConfig = configWithDefaults
+}
+
+export const resetPumpConfig = (): void => {
+  pumpConfig = [...initialPumpConfig]
 }

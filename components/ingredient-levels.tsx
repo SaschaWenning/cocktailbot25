@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Loader2, RefreshCw, AlertTriangle, Droplet, Wine, Coffee } from "lucide-react"
 import type { IngredientLevel } from "@/types/ingredient-level"
 import { ingredients } from "@/data/ingredients"
-import { getIngredientLevels, refillAllIngredients, initializeNewIngredientLevel } from "@/lib/ingredient-level-service"
+import { getIngredientLevels, refillAllIngredients, initializePumpIngredients } from "@/lib/ingredient-level-service"
 import type { PumpConfig } from "@/types/pump-config"
 import VirtualKeyboard from "./virtual-keyboard"
 import { updateIngredientLevel } from "@/lib/ingredient-level-service"
@@ -63,24 +63,16 @@ export default function IngredientLevels({ pumpConfig, onLevelsUpdated }: Ingred
   // Initialisiere Füllstände für alle Pumpen-Zutaten
   const initializePumpIngredients = async () => {
     try {
-      const currentLevels = await getIngredientLevels()
-      let hasNewIngredients = false
+      console.log("Initialisiere Pumpen-Zutaten:", pumpConfig)
 
-      for (const pump of pumpConfig) {
-        const existingLevel = currentLevels.find((level) => level.ingredientId === pump.ingredient)
+      // Verwende die neue Service-Funktion
+      await initializePumpIngredients(pumpConfig)
 
-        if (!existingLevel) {
-          console.log(`Initialisiere neue Zutat: ${pump.ingredient}`)
-          await initializeNewIngredientLevel(pump.ingredient)
-          hasNewIngredients = true
-        }
-      }
+      // Lade die aktualisierten Füllstände
+      const updatedLevels = await getIngredientLevels()
+      setLevels(updatedLevels)
 
-      // Wenn neue Zutaten hinzugefügt wurden, lade die Füllstände neu
-      if (hasNewIngredients) {
-        const updatedLevels = await getIngredientLevels()
-        setLevels(updatedLevels)
-      }
+      console.log("Füllstände nach Initialisierung:", updatedLevels)
     } catch (error) {
       console.error("Fehler beim Initialisieren der Pumpen-Zutaten:", error)
     }

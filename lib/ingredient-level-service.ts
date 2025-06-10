@@ -21,6 +21,7 @@ export async function getIngredientLevels(): Promise<IngredientLevel[]> {
   })
 
   // Initialisiere fehlende Zutaten
+  // Nach dem Hinzufügen neuer Zutaten, speichere die aktualisierten Daten
   for (const ingredientId of usedIngredients) {
     const existingIndex = ingredientLevels.findIndex((level) => level.ingredientId === ingredientId)
 
@@ -32,6 +33,7 @@ export async function getIngredientLevels(): Promise<IngredientLevel[]> {
         lastRefill: new Date(),
       }
       ingredientLevels.push(newLevel)
+      console.log(`Neue Zutat initialisiert: ${ingredientId} mit 700ml`)
     }
   }
 
@@ -223,5 +225,26 @@ export async function updateIngredientCapacity(ingredientId: string, capacity: n
 // Zurücksetzen auf Initialwerte (für Testzwecke)
 export async function resetIngredientLevels(): Promise<IngredientLevel[]> {
   ingredientLevels = [...initialIngredientLevels]
+  return ingredientLevels
+}
+
+// Neue Funktion für Pumpen-Zutaten
+export async function initializePumpIngredients(pumpConfig: any[]): Promise<IngredientLevel[]> {
+  for (const pump of pumpConfig) {
+    if (pump.ingredient) {
+      const existingIndex = ingredientLevels.findIndex((level) => level.ingredientId === pump.ingredient)
+
+      if (existingIndex === -1) {
+        const newLevel: IngredientLevel = {
+          ingredientId: pump.ingredient,
+          currentAmount: 700,
+          capacity: 1000,
+          lastRefill: new Date(),
+        }
+        ingredientLevels.push(newLevel)
+        console.log(`Pumpen-Zutat initialisiert: ${pump.ingredient}`)
+      }
+    }
+  }
   return ingredientLevels
 }
